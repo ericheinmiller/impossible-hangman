@@ -8,20 +8,29 @@ const axiosConfig = {
     'X-RapidAPI-Key': '883211d6c0msh2bb181a550e208cp1df6cdjsnf1210d05437d',
   },
 };
+
+const createNewObject = (theArray, letter) => ({ ...theArray, [letter]: letter });
 const alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
 export const MainStore = (props) => {
-  const [greeting, setGreeting] = useState('Tough and Completely Unfair Hangman');
-  const [guessedLetters, setGuessedLetters] = useState({ ' ': 'correct', '-': 'correct' });
+  const [guessedLetters, setGuessedLetters] = useState({ ' ': ' ', '-': '-' });
+  const [alphabetArray, setAlphabetArray] = useState(alphabet);
   const [guessAttempts, setGuessAttempts] = useState(6);
+  const [wordArray, setWordArray] = useState([]);
   const [word, setWord] = useState('');
   const [acceptingInput, setAcceptingInput] = useState(false);
-  const [alphabetArray, setAlphabetArray] = useState(alphabet);
+  const [status, setStatus] = useState('pending');
+  const [points, setPoints] = useState(0);
 
   const fetchRandomWord = async () => {
     const response = await axios.get('https://wordsapiv1.p.rapidapi.com/words/?random=true', axiosConfig);
-    setWord(response.data.word);
+    setWordArray(response.data.word.toUpperCase().split('').filter(letter => letter !== '-' || letter !== ' '));
+    setWord(response.data.word.toUpperCase());
     setAcceptingInput(true);
+    setAlphabetArray(alphabet);
+    setGuessedLetters({ ' ': ' ', '-': '-' });
+    setGuessAttempts(6);
+    setStatus('pending');
   };
 
   useEffect(() => {
@@ -30,32 +39,22 @@ export const MainStore = (props) => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      const letters = /^[A-Za-z]+$/;
-      if (!acceptingInput) {
+      const regexFilter = /^[A-Za-z]+$/;
+      if (!e.key.match(regexFilter) || e.key.length > 1 || !acceptingInput) {
         return;
       }
-      if (!e.key.match(letters) || e.key.length > 1) {
-        return;
-      }
-      if (guessAttempts === 0) {
+      if (status === 'gameOver' || status === 'winner') {
         setAcceptingInput(false);
-        setAlphabetArray(alphabet);
         fetchRandomWord();
-        setGuessedLetters({ ' ': 'correct', '-': 'correct' });
-        setGuessAttempts(6);
         return;
       }
-      if (word.includes(e.key) && !guessedLetters[e.key]) {
-        const newObj = { ...guessedLetters, [e.key]: 'correct' };
-        const newArray = alphabetArray.filter(letter => e.key.toUpperCase() !== letter);
-        setAlphabetArray(newArray);
-        setGuessedLetters(newObj);
-      } else if (!word.includes(e.key) && !guessedLetters[e.key]) {
-        const newObj = { ...guessedLetters, [e.key]: 'wrong' };
-        const newArray = alphabetArray.filter(letter => e.key.toUpperCase() !== letter);
-        setAlphabetArray(newArray);
-        setGuessedLetters(newObj);
-        setGuessAttempts(guessAttempts - 1);
+      if (!guessedLetters[e.key.toUpperCase()]) {
+        setAlphabetArray(alphabetArray.filter(letter => e.key.toUpperCase() !== letter));
+        setWordArray(wordArray.filter(letter => e.key.toUpperCase() !== letter));
+        setGuessedLetters(createNewObject(guessedLetters, e.key.toUpperCase()));
+        if (!word.includes(e.key.toUpperCase())) {
+          setGuessAttempts(guessAttempts - 1);
+        }
       }
     };
 
@@ -63,16 +62,29 @@ export const MainStore = (props) => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [guessAttempts, word, guessedLetters, acceptingInput]);
+  }, [guessAttempts, word, guessedLetters, acceptingInput, alphabetArray, wordArray, status]);
+
+  useEffect(() => {
+    if (guessAttempts <= 0) {
+      setStatus('gameOver');
+      return;
+    }
+    if (wordArray <= 0 && word !== '' && status !== 'winner') {
+      const newPoints = points + 1;
+      setStatus('winner');
+      setPoints(newPoints);
+    }
+  }, [guessAttempts, wordArray, word, points, status]);
 
   return (
     <Context.Provider value={{
-      greeting,
       alphabetArray,
-      setGreeting,
+      wordArray,
       word,
+      status,
       guessedLetters,
       guessAttempts,
+      points,
     }}
     >
       {props.children}

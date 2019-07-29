@@ -7,11 +7,11 @@ const buildGuesses = (word, guessedLetters, guessAttempts) => {
 };
 
 export default () => (
-  <div className="guesses-container">
+  <div className="guessBoard-container">
     <div className="guesses">
-    <Context.Consumer>
-      { context => buildGuesses(context.word, context.guessedLetters, context.guessAttempts) }
-    </Context.Consumer>
+      <Context.Consumer>
+        { context => buildGuesses(context.word, context.guessedLetters, context.guessAttempts) }
+      </Context.Consumer>
     </div>
     <Context.Consumer>
       { context => <p>[ { context.alphabetArray } ]</p>}

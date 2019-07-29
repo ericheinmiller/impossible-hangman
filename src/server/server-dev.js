@@ -16,6 +16,10 @@ app.use(webpackDevMiddleware(compiler, {
 
 app.use(webpackHotMiddleware(compiler));
 
+app.get('/yo', (req, res) => {
+  res.json({ yo: 'bro' });
+});
+
 app.get('*', (req, res, next) => {
   compiler.outputFileSystem.readFile(HTML_FILE, (err, result) => {
     if (err) {
@@ -26,7 +30,9 @@ app.get('*', (req, res, next) => {
     res.end();
   });
 });
+
 const PORT = process.env.PORT || 8080;
+
 app.listen(PORT, () => {
   console.log(`App listening to ${PORT}....`);
   console.log('Press Ctrl+C to quit.');
