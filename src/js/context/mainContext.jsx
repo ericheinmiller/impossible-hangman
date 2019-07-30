@@ -31,6 +31,7 @@ export const MainStore = (props) => {
     setGuessedLetters({ ' ': ' ', '-': '-' });
     setGuessAttempts(6);
     setStatus('pending');
+    console.log(response.data.word);
   };
 
   useEffect(() => {

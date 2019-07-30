@@ -66,6 +66,7 @@ h2 {
   text-align: center;
   font-family: helvetica;
   color: #3e3e3e;
+  box-shadow: 0px 3px 5px -1px gray;
 }
 
 .points {
@@ -76,4 +77,13 @@ h2 {
   right: 50px;
   font-family: helvetica;
   color: #3e3e3e;
+}
+
+.hint {
+  position: fixed;
+  top: 0px;
+  left: 50px;
+  font-family: helvetica;
+  color: #3e3e3e;
+  font-size: .8em;
 }
